@@ -1,8 +1,8 @@
 function create() {
-	document.write("Creating monitor...");
 	let formData = new FormData();
 	formData.append("purpose", "create");
 	["url", "interval"].forEach(item => formData.append(item, document.getElementsByName(item)[0].value));
+	document.write("Creating monitor...");
 	fetch("https://website-monitor.ashwinramani1.repl.co/request", {
 		"method": "POST",
 		"body": formData
