@@ -1,7 +1,7 @@
 # website-monitor
 A fast and simple website monitor to check if a site is up and running.
 
-**This can be used https://website-monitor.ashwinramani1.repl.co**
+**This can be used at https://website-monitor.ashwinramani1.repl.co**  
 How to use:
 > There are two fields - one labeled "Website URL" and another labeled "Interval".
 > In the field labeled "Website URL", you must type in the URL of the website you want to monitor.
