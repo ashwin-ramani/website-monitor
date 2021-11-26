@@ -1,4 +1,5 @@
 function create() {
+	document.write("Creating monitor...");
 	let formData = new FormData();
 	formData.append("purpose", "create");
 	["url", "interval"].forEach(item => formData.append(item, document.getElementsByName(item)[0].value));
