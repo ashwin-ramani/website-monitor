@@ -3,7 +3,7 @@ import threading, time, requests, random, json
 
 app = Flask("__main__")
 
-with open("data.json") as file:
+with open("./data.json") as file:
 	data = json.loads(file.read())
 
 def generate():
@@ -29,7 +29,7 @@ def uptime(monitor, interval):
 	while True:
 		try:
 			status = requests.get(data["monitors"][monitor]["url"]).status_code
-			if (not(status in (429, 444) or str(status).startswith("2"))): 
+			if (not(status in (405, 429, 444) or str(status).startswith("2"))): 
 				raise "error"
 			data["monitors"][monitor]["status"] = f"Website {data['monitors'][monitor]['url']} is up."
 		except:
