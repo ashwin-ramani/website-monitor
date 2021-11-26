@@ -29,7 +29,7 @@ def uptime(monitor, interval):
 	while True:
 		try:
 			status = requests.get(data["monitors"][monitor]["url"]).status_code
-			if (not(status in (405, 429, 444) or str(status).startswith("2"))): 
+			if (status == 404): 
 				raise "error"
 			data["monitors"][monitor]["status"] = f"Website {data['monitors'][monitor]['url']} is up."
 		except:
@@ -58,7 +58,7 @@ def respond():
 		status = None
 		try:
 			status = requests.get(request.form["url"]).status_code
-			if (not(status in (405, 429, 444) or str(status).startswith("2"))):
+			if (status == 404):
 				 raise "error"
 			status = f"Website {request.form['url']} is up."
 		except:
