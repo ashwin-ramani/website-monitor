@@ -29,8 +29,8 @@ def uptime(monitor, interval):
 	while True:
 		try:
 			status = requests.get(data["monitors"][monitor]["url"]).status_code
-			if (status == 404): 
-				raise "error"
+			if (status in (404, 502)): 
+				raise
 			data["monitors"][monitor]["status"] = f"Website {data['monitors'][monitor]['url']} is up."
 		except:
 			data["monitors"][monitor]["status"] = f"Website {data['monitors'][monitor]['url']} is down."
@@ -58,8 +58,8 @@ def respond():
 		status = None
 		try:
 			status = requests.get(request.form["url"]).status_code
-			if (status == 404):
-				 raise "error"
+			if (status in (404, 502)):
+				 raise
 			status = f"Website {request.form['url']} is up."
 		except:
 			status = f"Website {request.form['url']} is down."
@@ -67,7 +67,7 @@ def respond():
 		data["monitors"][monitorID] = {"status": status, "url": request.form["url"], "monitor": monitorID, "sent": 0}
 		
 		t = None
-
+		
 		try:
 			t = threading.Thread(target = uptime, args = (monitorID, int(request.form["interval"])))
 		except:
