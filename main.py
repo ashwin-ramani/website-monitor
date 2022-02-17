@@ -1,81 +1,56 @@
-from flask import Flask, render_template, request, redirect
-import threading, time, requests, random, json
+from flask import Flask, render_template, request
+import time, requests, threading
+from very_important import *
 
-app = Flask("__main__")
+threading.Thread(target = worker, args = (0,), daemon = True).start()
+					
+app = Flask(__name__)
 
-with open("./data.json") as file:
-	data = json.loads(file.read())
-
-def generate():
-	def generate_str():
-		chars = []
-		for i in range(15):
-			char_type = random.choice(("int", "str"))
-			if (char_type == "int"):
-				 chars.append(str(random.randint(0, 9)))
-			else:
-				chars.append(random.choice("abcdefghijklmnopqrstuvwxyz"))
-			
-		return "".join(chars)
-	
-	generated = generate_str()
-	while generated in data["monitors"]:
-		generated = generate_str()
-	return generated
-
-def uptime(monitor, interval):
-	if (interval < 1): 
-		interval = 1
-	while True:
-		try:
-			status = requests.get(data["monitors"][monitor]["url"]).status_code
-			if (status in (404, 502)): 
-				raise
-			data["monitors"][monitor]["status"] = f"Website {data['monitors'][monitor]['url']} is up."
-		except:
-			data["monitors"][monitor]["status"] = f"Website {data['monitors'][monitor]['url']} is down."
-
-		data["monitors"][monitor]["sent"] += 1
-		
-		time.sleep(interval)
-
-@app.route("/") 
+@app.route("/")
 def index():
 	return render_template("index.html")
 
-@app.route("/<monitor>")
-def load(monitor):
-	if (not(monitor in data["monitors"])):
-		return redirect("/")
-	else:
-		return f"<title>Monitor</title><b>{data['monitors'][monitor]['status']}</b><br>Sent: {data['monitors'][monitor]['sent']}"
+@app.route("/<monitor_id>")
+def _monitor(monitor_id):
+	try:
+		if (data[monitor_id]["existance-length"] < data[monitor_id]["uptime-length"]):
+			data[monitor_id]["existance-length"] = data[monitor_id]["uptime-length"]
+		percent = round(data[monitor_id]["uptime-length"] / data[monitor_id]["existance-length"] * 100, 2)
+		return f"{data[monitor_id]['readable-status']}<br><br><b>Uptime</b>: {percent}%"
+	except ZeroDivisionError:
+		if (data[monitor_id]["raw-status"] == "up"):
+			percent = 100.0
+		else:
+			percent = 0.0		
+		return f"{data[monitor_id]['readable-status']}<br><br><b>Uptime</b>: {percent}%"
+	except KeyError:
+		return "Monitor not found."
 
-@app.route('/request', methods = ["POST"])
-def respond():
+@app.route("/request", methods = ("POST",))
+def handle_request():
 	if (request.form["purpose"] == "create"):
+		url = request.form["url"].strip()
+		monitor_id = generate()
+		temp = {
+			"url": url,
+			"existance-length": 0,
+			"uptime-length": 0
+		}
 
-		monitorID = generate()
-		status = None
-		try:
-			status = requests.get(request.form["url"]).status_code
-			if (status in (404, 502)):
-				 raise
-			status = f"Website {request.form['url']} is up."
-		except:
-			status = f"Website {request.form['url']} is down."
+	try:
+		if (requests.get(url).status_code in {404, 405, 502}):
+			raise
+		temp["readable-status"] = f"Website <b>{url}</b> is up."
+		temp["raw-status"] = "up"
+			
+	except:
+		temp["timestamp"] = time.time()
+		temp["raw-status"] = "down"
+		temp["readable-status"] = f"Website <b>{url}</b> is down - recorded as down 0 seconds ago."
 
-		data["monitors"][monitorID] = {"status": status, "url": request.form["url"], "monitor": monitorID, "sent": 0}
-		
-		t = None
-		
-		try:
-			t = threading.Thread(target = uptime, args = (monitorID, int(request.form["interval"])))
-		except:
-			t = threading.Thread(target = uptime, args = (monitorID, 1))
-		
-		t.start()
+	atw(monitor_id)
 
-		return monitorID
-
-
-app.run(host = "0.0.0.0")
+	data[monitor_id] = temp
+	return monitor_id
+			
+app.run("0.0.0.0")
