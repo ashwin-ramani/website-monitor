@@ -25,15 +25,15 @@ def atw(monitor_id):
 		workloads[lastw()].add(monitor_id)		
 
 
-def worker(i):
+def worker(index):
 	while (True):
-		for monitor_id in workloads[i]:
+		for monitor_id in workloads[index]:
 			try:
 				status_code = requests.get(data[monitor_id]["url"]).status_code
 			except:
 				status_code = 404
 				
-			if (status_code in (404, 405, 502)):
+			if (status_code in {404, 405, 502}):
 				time_ago = "0 seconds"
 				try:
 					time_ago = format_time(math.ceil(time.time() - data[monitor_id]["timestamp"]))
@@ -94,8 +94,8 @@ def format_time(seconds):
 
 
 def start_threads():
-	threading.Thread(target = worker, args = (0,), daemon = True).start()
-	threading.Thread(target = save, daemon = True).start()
+	for func in {lambda: worker(0), save}:
+		threading.Thread(target = func, daemon = True).start()
 
 	for monitor_id in data:
 		atw(monitor_id)
