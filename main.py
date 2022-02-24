@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 import time, requests, threading, re
-from very_important import *
+from stuff import *
 
 start_threads()
 
@@ -8,7 +8,8 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-	return render_template("index.html")
+	return render_template("index.html")\
+	
 
 @app.route("/<monitor_id>")
 def _monitor(monitor_id):
